@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELOHIM-GESTION - Moderne</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0f172a;color:white;margin:0;padding:12px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:22px;font-weight:900}
+.logo span{color:#22c55e}
+.date{font-size:13px;opacity:.8}
+.cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0}
+.card{background:#1e293b;padding:14px;border-radius:16px;text-align:center}
+.card small{opacity:.7;font-size:12px}
+.card b{font-size:20px;display:block;margin-top:4px}
+.green{color:#22c55e}.red{color:#f87171}.yellow{color:#facc15}
+.box{background:white;color:#111827;padding:16px;border-radius:18px;margin-bottom:12px}
+.box h3{margin:0 0 10px 0;font-size:16px}
+input,select{width:100%;padding:12px;margin:6px 0;border:2px solid #e5e7eb;border-radius:10px;font-size:15px}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:800;font-size:16px;cursor:pointer}
+.btn-green{background:#16a34a;color:white}
+.btn-dark{background:#111827;color:white;margin-top:8px}
+.btn-print{background:#f59e0b;color:white;margin-top:10px}
+.liste{max-height:220px;overflow:auto}
+.item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:14px}
+.item small{color:#6b7280;display:block}
+.del{color:red;border:none;background:none;font-size:18px;cursor:pointer}
+.print-only{display:none}
+/* IMPRESSION */
+@media print{
+  body{background:white;color:black;padding:0}
+  .no-print{display:none!important}
+  .print-only{display:block!important}
+  .box{box-shadow:none;border:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+
+<div class="top no-print">
+  <div class="logo">ELOHIM<span>-GESTION</span></div>
+  <div class="date" id="dateJour"></div>
+</div>
+
+<div class="print-only" style="text-align:center">
+  <h1 style="margin:0">ELOHIM-GESTION</h1>
+  <p>RAPPORT DE VENTES DU JOUR - <span id="datePrint"></span></p>
+  <hr>
+</div>
+
+<div class="cards no-print">
+  <div class="card"><small>VENTES</small><b class="green" id="totalVentes">0 F</b></div>
+  <div class="card"><small>DÉPENSES</small><b class="red" id="totalDep">0 F</b></div>
+  <div class="card"><small>BÉNÉFICE</small><b class="yellow" id="totalBenef">0 F</b></div>
+</div>
+
+<!-- Pour l'impression -->
+<div class="print-only">
+  <h3>RÉSUMÉ</h3>
+  <p>Ventes totales : <b id="pVentes"></b></p>
+  <p>Dépenses totales : <b id="pDep"></b></p>
+  <p>Bénéfice net : <b id="pBenef"></b></p>
+  <p>Nombre de ventes : <b id="pNb"></b></p>
+  <hr>
+</div>
+
+<div class="box no-print">
+  <h3>➕ Nouvelle Vente</h3>
+  <input id="article" placeholder="Ex: Poulet braisé, Bière, Riz...">
+  <input id="prix" type="number" placeholder="Prix FCFA">
+  <select id="paiement">
+    <option value="Cash">💵 Cash</option>
+    <option value="Wave">📱 Wave</option>
+    <option value="Orange Money">🟠 Orange Money</option>
+    <option value="MTN MoMo">🟡 MTN MoMo</option>
+  </select>
+  <button class="btn btn-green" onclick="ajouterVente()">AJOUTER VENTE ✅</button>
+</div>
+
+<div class="box no-print">
+  <h3>➖ Nouvelle Dépense</h3>
+  <input id="libDep" placeholder="Ex: Charbon, Transport, Aide">
+  <input id="montDep" type="number" placeholder="Montant FCFA">
+  <button class="btn btn-dark" onclick="ajouterDepense()">AJOUTER DÉPENSE</button>
+</div>
+
+<div class="box">
+  <h3>🧾 Ventes du jour <span id="nbVentes"></span></h3>
+  <div class="liste" id="listeVentes"></div>
+  <h3 style="margin-top:16px">💸 Dépenses</h3>
+  <div class="liste" id="listeDep"></div>
+</div>
+
+<div class="box no-print">
+  <button class="btn btn-print" onclick="imprimer()">🖨️ IMPRIMER LE RAPPORT DU JOUR</button>
+  <button class="btn btn-dark" onclick="effacerJour()">🗑️ Effacer le jour (Nouveau jour)</button>
+</div>
+
+<div class="print-only" style="text-align:center;margin-top:40px">
+  <p>Signature Gérante : ____________________</p>
+  <p style="font-size:12px">Merci - ELOHIM-GESTION | WhatsApp 010 34 38 755</p>
+</div>
+
+<script>
+let ventes = JSON.parse(localStorage.getItem('ventes_jour')||'[]');
+let deps = JSON.parse(localStorage.getItem('deps_jour')||'[]');
+let today = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('dateJour').innerText = today;
+document.getElementById('datePrint').innerText = today;
+
+function sauver(){ localStorage.setItem('ventes_jour',JSON.stringify(ventes)); localStorage.setItem('deps_jour',JSON.stringify(deps)); afficher(); }
+function ajouterVente(){
+  let a=document.getElementById('article').value.trim();
+  let p=Number(document.getElementById('prix').value);
+  let pay=document.getElementById('paiement').value;
+  if(!a||!p) return alert('Mets article + prix');
+  ventes.push({a,p,pay,heure:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})});
+  document.getElementById('article').value=''; document.getElementById('prix').value='';
+  sauver();
+}
+function ajouterDepense(){
+  let l=document.getElementById('libDep').value.trim();
+  let m=Number(document.getElementById('montDep').value);
+  if(!l||!m) return alert('Mets libellé + montant');
+  deps.push({l,m});
+  document.getElementById('libDep').value=''; document.getElementById('montDep').value='';
+  sauver();
+}
+function supprimerVente(i){ ventes.splice(i,1); sauver(); }
+function supprimerDep(i){ deps.splice(i,1); sauver(); }
+function effacerJour(){ if(confirm('Effacer toutes les ventes du jour ?')){ ventes=[]; deps=[]; sauver(); } }
+function afficher(){
+  let tv=ventes.reduce((s,v)=>s+v.p,0);
+  let td=deps.reduce((s,d)=>s+d.m,0);
+  let benef=tv-td;
+  document.getElementById('totalVentes').innerText=tv.toLocaleString()+' F';
+  document.getElementById('totalDep').innerText=td.toLocaleString()+' F';
+  document.getElementById('totalBenef').innerText=benef.toLocaleString()+' F';
+  document.getElementById('pVentes').innerText=tv.toLocaleString()+' FCFA';
+  document.getElementById('pDep').innerText=td.toLocaleString()+' FCFA';
+  document.getElementById('pBenef').innerText=benef.toLocaleString()+' FCFA';
+  document.getElementById('pNb').innerText=ventes.length;
+  document.getElementById('nbVentes').innerText='('+ventes.length+')';
+  document.getElementById('listeVentes').innerHTML=ventes.map((v,i)=>`<div class="item"><div><b>${v.a}</b><small>${v.pay} • ${v.heure}</small></div><div><b>${v.p.toLocaleString()} F</b> <button class="del" onclick="supprimerVente(${i})">×</button></div></div>`).join('')||'<p style="color:#999">Aucune vente pour le moment</p>';
+  document.getElementById('listeDep').innerHTML=deps.map((d,i)=>`<div class="item"><div><b>${d.l}</b></div><div><b>${d.m.toLocaleString()} F</b> <button class="del" onclick="supprimerDep(${i})">×</button></div></div>`).join('')||'<p style="color:#999">Aucune dépense</p>';
+}
+function imprimer(){ window.print(); }
+afficher();
+</script>
+</body>
+</html>
