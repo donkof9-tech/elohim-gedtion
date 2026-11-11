@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELOHIM-GESTION - Moderne</title>
+<meta name="theme-color" content="#22c55e">
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#0f172a;color:white;padding:15px;max-width:600px;margin:auto}
+.top{display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:22px;font-weight:900}
+.logo span{color:#22c55e}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
+.card{background:#1e293b;padding:14px;border-radius:12px;border:1px solid #334155}
+.card small{opacity:.7;font-size:12px}
+.card b{font-size:20px;display:block;margin-top:4px}
+.box{background:#1e293b;padding:15px;border-radius:12px;margin-bottom:15px;border:1px solid #334155}
+input,select,button{width:100%;padding:12px;margin:7px 0;border-radius:9px;border:none;font-size:16px}
+input,select{background:#334155;color:white}
+button{font-weight:bold;cursor:pointer}
+.btn-add{background:#22c55e;color:#000}
+.btn-sell{background:#3b82f6;color:white}
+.btn-print{background:#f59e0b;color:#000}
+.btn-reset{background:#ef4444;color:white}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+th,td{border:1px solid #334155;padding:7px;text-align:center}
+th{background:#334155}
+</style>
+</head>
+<body>
+<div class="top">
+<div class="logo">ELOHIM<span>-GESTION</span></div>
+<div id="dateJour"></div>
+</div>
+<div class="cards">
+<div class="card"><small>CA du jour</small><b id="ca">0 CFA</b></div>
+<div class="card"><small>Bénéfice du jour</small><b id="benef">0 CFA</b></div>
+</div>
+<div class="box">
+<h2>📥 Entrée Stock</h2>
+<input id="nom" placeholder="Ex: Coca 33cl">
+<input id="qte" type="number" placeholder="Quantité reçue">
+<input id="achat" type="number" placeholder="Prix d'achat CFA">
+<input id="vente" type="number" placeholder="Prix de vente CFA">
+<button class="btn-add" onclick="ajouterStock()">Ajouter au Stock</button>
+</div>
+<div class="box">
+<h2>💰 Vendre</h2>
+<select id="produitVente"><option>-- Choisir un produit --</option></select>
+<input id="qteVente" type="number" placeholder="Quantité vendue">
+<button class="btn-sell" onclick="vendre()">Enregistrer Vente</button>
+</div>
+<div class="box">
+<h2>📦 État du Stock</h2>
+<table id="tableStock"></table>
+<h2 style="margin-top:15px">🧾 Historique Ventes</h2>
+<table id="tableVentes"></table>
+</div>
+<div class="box">
+<button class="btn-print" onclick="window.print()">🖨️ Imprimer Rapport</button>
+<button class="btn-reset" onclick="resetJour()">🔄 Clôturer Journée</button>
+</div>
+<script>
+let stock = JSON.parse(localStorage.getItem('stockElohim')) || [];
+let ventes = JSON.parse(localStorage.getItem('ventesElohim')) || [];
+function sauvegarder(){
+  localStorage.setItem('stockElohim', JSON.stringify(stock));
+  localStorage.setItem('ventesElohim', JSON.stringify(ventes));
+}
+function ajouterStock(){
+  let nom=document.getElementById('nom').value.trim();
+  let qte=parseInt(document.getElementById('qte').value);
+  let achat=parseInt(document.getElementById('achat').value);
+  let vente=parseInt(document.getElementById('vente').value);
+  if(!nom||!qte||!achat||!vente){alert('Remplis les 4 cases');return;}
+  let ex=stock.find(p=>p.nom===nom);
+  if(ex){ex.qte+=qte;ex.achat=achat;ex.vente=vente;}
+  else{stock.push({nom,qte,achat,vente});}
+  document.getElementById('nom').value='';document.getElementById('qte').value='';
+  document.getElementById('achat').value='';document.getElementById('vente').value='';
+  sauvegarder();afficher();
+}
+function vendre(){
+  let nom=document.getElementById('produitVente').value;
+  let qte=parseInt(document.getElementById('qteVente').value);
+  let p=stock.find(x=>x.nom===nom);
+  if(!p){alert('Choisis un produit');return;}
+  if(!qte||qte<=0){alert('Mets une quantité');return;}
+  if(qte>p.qte){alert('Stock insuffisant, il reste '+p.qte);return;}
+  p.qte-=qte;
+  ventes.push({heure:new Date().toLocaleString('fr-FR'),nom,qte,total:qte*p.vente,benef:qte*(p.vente-p.achat)});
+  document.getElementById('qteVente').value='';
+  sauvegarder();afficher();
+}
+function afficher(){
+  document.getElementById('dateJour').textContent=new Date().toLocaleDateString('fr-FR');
+  let sel=document.getElementById('produitVente');
+  sel.innerHTML='<option>-- Choisir un produit --</option>';
+  stock.forEach(p=>{if(p.qte>0) sel.innerHTML+=`<option>${p.nom}</option>`;});
+  let ts=document.getElementById('tableStock');
+  ts.innerHTML='<tr><th>Produit</th><th>Stock</th><th>Achat</th><th>Vente</th></tr>';
+  stock.forEach(p=>{ts.innerHTML+=`<tr><td>${p.nom}</td><td>${p.qte}</td><td>${p.achat}</td><td>${p.vente}</td></tr>`;});
+  let tv=document.getElementById('tableVentes');
+  tv.innerHTML='<tr><th>Heure</th><th>Produit</th><th>Qté</th><th>Total</th><th>Bénéf</th></tr>';
+  let ca=0,ben=0;
+  ventes.forEach(v=>{tv.innerHTML+=`<tr><td>${v.heure}</td><td>${v.nom}</td><td>${v.qte}</td><td>${v.total}</td><td>${v.benef}</td></tr>`;ca+=v.total;ben+=v.benef;});
+  document.getElementById('ca').textContent=ca.toLocaleString('fr-FR')+' CFA';
+  document.getElementById('benef').textContent=ben.toLocaleString('fr-FR')+' CFA';
+}
+function resetJour(){
+  if(confirm('Clôturer la journée ?')){
+    ventes=[];sauvegarder();afficher();
+  }
+}
+afficher();
+</script>
+</body>
+</html>
