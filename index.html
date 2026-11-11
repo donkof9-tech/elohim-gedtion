@@ -3,80 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ELOHIM-GESTION - Moderne</title>
+<title>ELOHIM-GESTION PRO</title>
 <meta name="theme-color" content="#22c55e">
 <style>
 *{box-sizing:border-box}
-body{font-family:Arial,sans-serif;background:#0f172a;color:white;padding:15px;max-width:600px;margin:auto}
+body{font-family:Arial,sans-serif;background:#0f172a;color:white;padding:12px;max-width:650px;margin:auto}
 .top{display:flex;justify-content:space-between;align-items:center}
-.logo{font-size:22px;font-weight:900}
+.logo{font-size:23px;font-weight:900}
 .logo span{color:#22c55e}
-.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
-.card{background:#1e293b;padding:14px;border-radius:12px;border:1px solid #334155}
-.card small{opacity:.7;font-size:12px}
-.card b{font-size:20px;display:block;margin-top:4px}
-.box{background:#1e293b;padding:15px;border-radius:12px;margin-bottom:15px;border:1px solid #334155}
-input,select,button{width:100%;padding:12px;margin:7px 0;border-radius:9px;border:none;font-size:16px}
+.cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0}
+.card{background:#1e293b;padding:12px;border-radius:12px;border:1px solid #334155;text-align:center}
+.card small{opacity:.7;font-size:11px}
+.card b{font-size:17px;display:block;margin-top:4px}
+.box{background:#1e293b;padding:15px;border-radius:12px;margin-bottom:14px;border:1px solid #334155}
+input,select,button{width:100%;padding:12px;margin:6px 0;border-radius:9px;border:none;font-size:15px}
 input,select{background:#334155;color:white}
 button{font-weight:bold;cursor:pointer}
 .btn-add{background:#22c55e;color:#000}
 .btn-sell{background:#3b82f6;color:white}
 .btn-print{background:#f59e0b;color:#000}
 .btn-reset{background:#ef4444;color:white}
+.btn-wp{background:#25D366;color:#000}
+.btn-dette{background:#a855f7;color:white}
+.btn-depense{background:#f97316;color:white}
 table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
 th,td{border:1px solid #334155;padding:7px;text-align:center}
 th{background:#334155}
+.rouge{background:#ef4444;color:white;font-weight:bold}
+.orange{background:#f59e0b;color:black;font-weight:bold}
+.bar-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:12px}
+.bar-bg{flex:1;background:#334155;height:18px;border-radius:10px;overflow:hidden}
+.bar-fill{background:#22c55e;height:100%}
+.badge{font-size:11px;padding:3px 7px;border-radius:20px;background:#334155}
+.rapport-ligne{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #475569;font-size:14px}
+@media print{
+  body{background:white;color:black}
+  .no-print{display:none !important}
+  .box,.card{background:white;color:black;border:1px solid #ccc}
+  #zoneRapport{display:block !important}
+}
 </style>
 </head>
 <body>
-<div class="top">
-<div class="logo">ELOHIM<span>-GESTION</span></div>
-<div id="dateJour"></div>
-</div>
-<div class="cards">
+<div class="top"><div class="logo">ELOHIM<span>-GESTION PRO</span></div><div id="dateJour"></div></div>
+
+<div class="cards no-print">
 <div class="card"><small>CA du jour</small><b id="ca">0 CFA</b></div>
-<div class="card"><small>Bénéfice du jour</small><b id="benef">0 CFA</b></div>
+<div class="card"><small>Bénéfice jour</small><b id="benef">0 CFA</b></div>
+<div class="card"><small>Dettes totales</small><b id="totalDette" style="color:#f87171">0 CFA</b></div>
 </div>
-<div class="box">
+
+<!-- RAPPORT DU JOUR A IMPRIMER -->
+<div class="box" id="zoneRapport">
+<h2>🧾 RAPPORT DU JOUR - ELOHIM-GESTION</h2>
+<div style="font-size:13px;opacity:.8">Date : <b id="rapportDate"></b> | Heure d'impression : <b id="rapportHeure"></b></div>
+<div class="rapport-ligne"><span>🛒 Nombre de ventes</span><b id="rNbVentes">0</b></div>
+<div class="rapport-ligne"><span>💰 Chiffre d'Affaires (Ventes)</span><b id="rCA">0 CFA</b></div>
+<div class="rapport-ligne"><span>📦 Coût d'achat des produits vendus</span><b id="rCout">0 CFA</b></div>
+<div class="rapport-ligne"><span>💸 Dépenses du jour (transport, etc.)</span><b id="rDepenses">0 CFA</b></div>
+<div class="rapport-ligne"><span>📒 Dettes / Crédits donnés aujourd'hui</span><b id="rDettesJour">0 CFA</b></div>
+<div class="rapport-ligne" style="border:none;font-size:17px"><span>✅ BÉNÉFICE NET DU JOUR</span><b id="rBenefNet" style="color:#22c55e">0 CFA</b></div>
+<div style="font-size:12px;margin-top:8px">Formule : Bénéfice Net = CA - Coût d'achat - Dépenses</div>
+<h3 style="margin-top:14px">Détail des ventes du jour :</h3>
+<table id="tableRapportVentes"></table>
+<h3 style="margin-top:14px">Dépenses du jour :</h3>
+<table id="tableRapportDepenses"></table>
+</div>
+
+<div class="box no-print">
 <h2>📥 Entrée Stock</h2>
 <input id="nom" placeholder="Ex: Coca 33cl">
+<select id="categorie">
+<option value="Boissons">🥤 Boissons</option>
+<option value="Biscuits">🍪 Biscuits</option>
+<option value="Savons">🧼 Savons / Hygiène</option>
+<option value="Riz / Vivrier">🍚 Riz / Vivrier</option>
+<option value="Huile">🫗 Huile</option>
+<option value="Autre">📦 Autre</option>
+</select>
 <input id="qte" type="number" placeholder="Quantité reçue">
 <input id="achat" type="number" placeholder="Prix d'achat CFA">
 <input id="vente" type="number" placeholder="Prix de vente CFA">
 <button class="btn-add" onclick="ajouterStock()">Ajouter au Stock</button>
 </div>
-<div class="box">
+
+<div class="box no-print">
 <h2>💰 Vendre</h2>
 <select id="produitVente"><option>-- Choisir un produit --</option></select>
 <input id="qteVente" type="number" placeholder="Quantité vendue">
 <button class="btn-sell" onclick="vendre()">Enregistrer Vente</button>
+<button class="btn-wp" onclick="envoyerRecu()">📲 Envoyer Reçu WhatsApp (Dernière vente)</button>
 </div>
-<div class="box">
+
+<div class="box no-print">
+<h2>💸 Dépenses du Jour</h2>
+<input id="libelleDepense" placeholder="Ex: Transport, Sachets, Charbon...">
+<input id="montantDepense" type="number" placeholder="Montant CFA">
+<button class="btn-depense" onclick="ajouterDepense()">+ Ajouter Dépense</button>
+<table id="tableDepenses"></table>
+</div>
+
+<div class="box no-print">
+<h2>📊 Ventes des 7 derniers jours</h2>
+<div id="graph"></div>
+<div style="font-size:13px;opacity:.8">CA du mois : <b id="caMois">0 CFA</b> | Bénéfice mois : <b id="benefMois">0 CFA</b></div>
+</div>
+
+<div class="box no-print">
 <h2>📦 État du Stock</h2>
+<input id="recherche" placeholder="🔍 Rechercher... Ex: Coca" oninput="afficher()">
+<select id="filtreCat" onchange="afficher()">
+<option value="Tout">Toutes catégories</option>
+<option value="Boissons">Boissons</option>
+<option value="Biscuits">Biscuits</option>
+<option value="Savons">Savons / Hygiène</option>
+<option value="Riz / Vivrier">Riz / Vivrier</option>
+<option value="Huile">Huile</option>
+<option value="Autre">Autre</option>
+</select>
+<div style="font-size:12px;opacity:.7">🔴 = Stock faible (≤3) | 🟠 = Bientôt fini (≤5)</div>
 <table id="tableStock"></table>
-<h2 style="margin-top:15px">🧾 Historique Ventes</h2>
+</div>
+
+<div class="box no-print">
+<h2>📒 Carnet de Dettes / Crédits</h2>
+<input id="nomClient" placeholder="Nom du client Ex: Konan">
+<input id="montantDette" type="number" placeholder="Montant dû CFA">
+<input id="detailDette" placeholder="Détail Ex: 2 Coca + 1 pain">
+<button class="btn-dette" onclick="ajouterDette()">+ Ajouter Dette</button>
+<table id="tableDettes"></table>
+</div>
+
+<div class="box no-print">
+<h2>🧾 Historique Ventes</h2>
 <table id="tableVentes"></table>
 </div>
-<div class="box">
-<button class="btn-print" onclick="window.print()">🖨️ Imprimer Rapport</button>
+
+<div class="box no-print">
+<button class="btn-print" onclick="imprimerRapport()">🖨️ IMPRIMER RAPPORT DU JOUR COMPLET</button>
 <button class="btn-reset" onclick="resetJour()">🔄 Clôturer Journée</button>
 </div>
+
 <script>
 let stock = JSON.parse(localStorage.getItem('stockElohim')) || [];
 let ventes = JSON.parse(localStorage.getItem('ventesElohim')) || [];
+let dettes = JSON.parse(localStorage.getItem('dettesElohim')) || [];
+let depenses = JSON.parse(localStorage.getItem('depensesElohim')) || [];
+
 function sauvegarder(){
   localStorage.setItem('stockElohim', JSON.stringify(stock));
   localStorage.setItem('ventesElohim', JSON.stringify(ventes));
+  localStorage.setItem('dettesElohim', JSON.stringify(dettes));
+  localStorage.setItem('depensesElohim', JSON.stringify(depenses));
 }
 function ajouterStock(){
   let nom=document.getElementById('nom').value.trim();
+  let cat=document.getElementById('categorie').value;
   let qte=parseInt(document.getElementById('qte').value);
   let achat=parseInt(document.getElementById('achat').value);
   let vente=parseInt(document.getElementById('vente').value);
   if(!nom||!qte||!achat||!vente){alert('Remplis les 4 cases');return;}
-  let ex=stock.find(p=>p.nom===nom);
-  if(ex){ex.qte+=qte;ex.achat=achat;ex.vente=vente;}
-  else{stock.push({nom,qte,achat,vente});}
+  let ex=stock.find(p=>p.nom.toLowerCase()===nom.toLowerCase());
+  if(ex){ex.qte+=qte;ex.achat=achat;ex.vente=vente;ex.cat=cat;}
+  else{stock.push({nom,qte,achat,vente,cat});}
   document.getElementById('nom').value='';document.getElementById('qte').value='';
   document.getElementById('achat').value='';document.getElementById('vente').value='';
   sauvegarder();afficher();
@@ -89,28 +178,117 @@ function vendre(){
   if(!qte||qte<=0){alert('Mets une quantité');return;}
   if(qte>p.qte){alert('Stock insuffisant, il reste '+p.qte);return;}
   p.qte-=qte;
-  ventes.push({heure:new Date().toLocaleString('fr-FR'),nom,qte,total:qte*p.vente,benef:qte*(p.vente-p.achat)});
+  ventes.push({date:new Date().toISOString().slice(0,10),heure:new Date().toLocaleString('fr-FR'),nom,qte,total:qte*p.vente,cout:qte*p.achat,benef:qte*(p.vente-p.achat)});
   document.getElementById('qteVente').value='';
+  sauvegarder();afficher();alert('Vente enregistrée ✅');
+}
+function supprimerProduit(nom){
+  if(confirm('Supprimer '+nom+' ?')){stock=stock.filter(p=>p.nom!==nom);sauvegarder();afficher();}
+}
+function ajouterDette(){
+  let nom=document.getElementById('nomClient').value.trim();
+  let montant=parseInt(document.getElementById('montantDette').value);
+  let detail=document.getElementById('detailDette').value.trim();
+  if(!nom||!montant){alert('Mets nom + montant');return;}
+  dettes.push({nom,montant,detail:detail||'',date:new Date().toISOString().slice(0,10),dateAff:new Date().toLocaleDateString('fr-FR')});
+  document.getElementById('nomClient').value='';document.getElementById('montantDette').value='';document.getElementById('detailDette').value='';
   sauvegarder();afficher();
 }
+function payerDette(i){if(confirm('Ce client a payé ?')){dettes.splice(i,1);sauvegarder();afficher();}}
+function ajouterDepense(){
+  let lib=document.getElementById('libelleDepense').value.trim();
+  let montant=parseInt(document.getElementById('montantDepense').value);
+  if(!lib||!montant){alert('Mets libellé + montant');return;}
+  depenses.push({lib,montant,date:new Date().toISOString().slice(0,10),heure:new Date().toLocaleString('fr-FR')});
+  document.getElementById('libelleDepense').value='';document.getElementById('montantDepense').value='';
+  sauvegarder();afficher();
+}
+function supprimerDepense(i){depenses.splice(i,1);sauvegarder();afficher();}
+function envoyerRecu(){
+  if(ventes.length===0){alert('Aucune vente');return;}
+  let v=ventes[ventes.length-1];
+  let msg=`🧾 RECU ELOHIM-GESTION%0AProduit: ${v.nom}%0AQuantité: ${v.qte}%0ATotal: ${v.total} CFA%0AMerci pour votre achat ! 🙏`;
+  window.open('https://wa.me/?text='+msg,'_blank');
+}
+function imprimerRapport(){
+  document.getElementById('rapportHeure').textContent=new Date().toLocaleString('fr-FR');
+  window.print();
+}
 function afficher(){
+  let auj=new Date().toISOString().slice(0,10);
+  let mois=auj.slice(0,7);
   document.getElementById('dateJour').textContent=new Date().toLocaleDateString('fr-FR');
+  document.getElementById('rapportDate').textContent=new Date().toLocaleDateString('fr-FR');
   let sel=document.getElementById('produitVente');
   sel.innerHTML='<option>-- Choisir un produit --</option>';
   stock.forEach(p=>{if(p.qte>0) sel.innerHTML+=`<option>${p.nom}</option>`;});
+
+  let rech=(document.getElementById('recherche')?.value||'').toLowerCase();
+  let filtre=document.getElementById('filtreCat')?.value||'Tout';
   let ts=document.getElementById('tableStock');
-  ts.innerHTML='<tr><th>Produit</th><th>Stock</th><th>Achat</th><th>Vente</th></tr>';
-  stock.forEach(p=>{ts.innerHTML+=`<tr><td>${p.nom}</td><td>${p.qte}</td><td>${p.achat}</td><td>${p.vente}</td></tr>`;});
+  ts.innerHTML='<tr><th>Produit</th><th>Cat</th><th>Stock</th><th>Vente</th><th>X</th></tr>';
+  stock.filter(p=>p.nom.toLowerCase().includes(rech)&&(filtre==='Tout'||p.cat===filtre||(!p.cat&&filtre==='Autre'))).forEach(p=>{
+    let cls='';let alerte='';
+    if(p.qte<=3){cls='rouge';alerte=' 🔴';}else if(p.qte<=5){cls='orange';alerte=' 🟠';}
+    ts.innerHTML+=`<tr><td>${p.nom}${alerte}</td><td><span class="badge">${p.cat||'Autre'}</span></td><td class="${cls}">${p.qte}</td><td>${p.vente}</td><td><button onclick="supprimerProduit('${p.nom}')" style="background:#ef4444;padding:5px">X</button></td></tr>`;
+  });
+
+  // Ventes jour / mois + RAPPORT
   let tv=document.getElementById('tableVentes');
   tv.innerHTML='<tr><th>Heure</th><th>Produit</th><th>Qté</th><th>Total</th><th>Bénéf</th></tr>';
-  let ca=0,ben=0;
-  ventes.forEach(v=>{tv.innerHTML+=`<tr><td>${v.heure}</td><td>${v.nom}</td><td>${v.qte}</td><td>${v.total}</td><td>${v.benef}</td></tr>`;ca+=v.total;ben+=v.benef;});
+  let ca=0,ben=0,coutJour=0,caM=0,benM=0,nbVentesJour=0;
+  let ventesJour=ventes.filter(v=>v.date===auj);
+  ventesJour.forEach(v=>{ca+=v.total;ben+=v.benef;coutJour+=(v.cout||0);nbVentesJour++;});
+  ventes.slice().reverse().forEach(v=>{tv.innerHTML+=`<tr><td>${v.heure}</td><td>${v.nom}</td><td>${v.qte}</td><td>${v.total}</td><td>${v.benef}</td></tr>`;if((v.date||'').slice(0,7)===mois){caM+=v.total;benM+=v.benef;}});
   document.getElementById('ca').textContent=ca.toLocaleString('fr-FR')+' CFA';
   document.getElementById('benef').textContent=ben.toLocaleString('fr-FR')+' CFA';
+  document.getElementById('caMois').textContent=caM.toLocaleString('fr-FR')+' CFA';
+  document.getElementById('benefMois').textContent=benM.toLocaleString('fr-FR')+' CFA';
+
+  // Dépenses jour
+  let depJour=depenses.filter(d=>d.date===auj);
+  let totDep=depJour.reduce((a,d)=>a+d.montant,0);
+  let td2=document.getElementById('tableDepenses');
+  td2.innerHTML='<tr><th>Dépense</th><th>Montant</th><th>X</th></tr>';
+  depenses.forEach((d,i)=>{if(d.date===auj) td2.innerHTML+=`<tr><td>${d.lib}</td><td>${d.montant} CFA</td><td><button onclick="supprimerDepense(${i})" style="background:#ef4444;padding:5px">X</button></td></tr>`;});
+
+  // Dettes
+  let td=document.getElementById('tableDettes');
+  td.innerHTML='<tr><th>Client</th><th>Montant</th><th>Détail</th><th>Payé ?</th></tr>';
+  let totD=0,dettesJour=0;
+  dettes.forEach((d,i)=>{td.innerHTML+=`<tr><td>${d.nom}<br><small>${d.dateAff||d.date}</small></td><td>${d.montant} CFA</td><td>${d.detail}</td><td><button onclick="payerDette(${i})" style="background:#22c55e;color:#000;padding:6px">✅ Payé</button></td></tr>`;totD+=d.montant;if(d.date===auj) dettesJour+=d.montant;});
+  document.getElementById('totalDette').textContent=totD.toLocaleString('fr-FR')+' CFA';
+
+  // RAPPORT DU JOUR
+  let benefNet=ca-coutJour-totDep;
+  document.getElementById('rNbVentes').textContent=nbVentesJour;
+  document.getElementById('rCA').textContent=ca.toLocaleString('fr-FR')+' CFA';
+  document.getElementById('rCout').textContent=coutJour.toLocaleString('fr-FR')+' CFA';
+  document.getElementById('rDepenses').textContent=totDep.toLocaleString('fr-FR')+' CFA';
+  document.getElementById('rDettesJour').textContent=dettesJour.toLocaleString('fr-FR')+' CFA';
+  document.getElementById('rBenefNet').textContent=benefNet.toLocaleString('fr-FR')+' CFA';
+  let trv=document.getElementById('tableRapportVentes');
+  trv.innerHTML='<tr><th>Produit</th><th>Qté</th><th>Total</th><th>Coût</th></tr>';
+  ventesJour.forEach(v=>{trv.innerHTML+=`<tr><td>${v.nom}</td><td>${v.qte}</td><td>${v.total}</td><td>${v.cout||0}</td></tr>`;});
+  if(ventesJour.length===0) trv.innerHTML+='<tr><td colspan="4">Aucune vente aujourd\'hui</td></tr>';
+  let trd=document.getElementById('tableRapportDepenses');
+  trd.innerHTML='<tr><th>Libellé</th><th>Montant</th></tr>';
+  depJour.forEach(d=>{trd.innerHTML+=`<tr><td>${d.lib}</td><td>${d.montant} CFA</td></tr>`;});
+  if(depJour.length===0) trd.innerHTML+='<tr><td colspan="2">Aucune dépense</td></tr>';
+
+  // Graphique
+  let g=document.getElementById('graph');
+  let jours=[];for(let i=6;i>=0;i--){let d=new Date();d.setDate(d.getDate()-i);jours.push(d.toISOString().slice(0,10));}
+  let max=1;jours.forEach(j=>{let s=ventes.filter(v=>v.date===j).reduce((a,v)=>a+v.total,0);if(s>max)max=s;});
+  g.innerHTML='';
+  jours.forEach(j=>{let s=ventes.filter(v=>v.date===j).reduce((a,v)=>a+v.total,0);let pct=Math.round((s/max)*100);let label=new Date(j).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'});g.innerHTML+=`<div class="bar-row"><span style="width:55px">${label}</span><div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div><b>${s.toLocaleString('fr-FR')}</b></div>`;});
 }
 function resetJour(){
-  if(confirm('Clôturer la journée ?')){
-    ventes=[];sauvegarder();afficher();
+  if(confirm('Clôturer la journée ? Ventes + Dépenses du jour seront effacées. Stock et Dettes restent.')){
+    let auj=new Date().toISOString().slice(0,10);
+    ventes=ventes.filter(v=>v.date!==auj);
+    depenses=depenses.filter(d=>d.date!==auj);
+    sauvegarder();afficher();
   }
 }
 afficher();
